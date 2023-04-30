@@ -5,6 +5,8 @@ import numpy as np
 import pysbd
 import torch
 
+from tqdm import tqdm
+
 from TTS.config import load_config
 from TTS.tts.models import setup_model as setup_tts_model
 
@@ -32,6 +34,7 @@ class Synthesizer(object):
         vc_checkpoint: str = "",
         vc_config: str = "",
         use_cuda: bool = False,
+        progress: bool = True
     ) -> None:
         """General 🐸 TTS interface for inference. It takes a tts and a vocoder
         model and synthesize speech from the provided text.
@@ -54,6 +57,7 @@ class Synthesizer(object):
             vc_checkpoint (str, optional): path to the voice conversion model file. Defaults to `""`,
             vc_config (str, optional): path to the voice conversion config file. Defaults to `""`,
             use_cuda (bool, optional): enable/disable cuda. Defaults to False.
+            progress (bool, optional): enable/disable progress when synthesizing sentences. Defaults to True.
         """
         self.tts_checkpoint = tts_checkpoint
         self.tts_config_path = tts_config_path
@@ -66,6 +70,7 @@ class Synthesizer(object):
         self.vc_checkpoint = vc_checkpoint
         self.vc_config = vc_config
         self.use_cuda = use_cuda
+        self.progress = progress
 
         self.tts_model = None
         self.vocoder_model = None
@@ -318,7 +323,7 @@ class Synthesizer(object):
         use_gl = self.vocoder_model is None
 
         if not reference_wav:
-            for sen in sens:
+            for sen in tqdm(sens):
                 try:
                     # synthesize voice
                     outputs = synthesis(
